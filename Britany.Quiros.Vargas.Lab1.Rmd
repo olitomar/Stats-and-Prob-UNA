@@ -1,0 +1,188 @@
+---
+title: "Laboratorio #1"
+author: "Britany Quiros Vargas"
+date: "2026-09-04"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+
+library(readxl)
+library(dplyr)
+library(ggplot2)
+library(knitr)
+```
+
+```{r lectura-datos}
+datos <- read_excel("BaseDatosServidores.xlsx")
+
+head(datos)
+str(datos)
+```
+
+---
+
+## Pregunta 1
+
+```{r pregunta-1}
+tabla_frecuencias <- datos %>%
+  group_by(`Estado del Servidor` = EstadoServidor) %>%
+  summarise(
+    `Frecuencia Absoluta` = n(),
+    `Porcentaje (%)` = round((n() / nrow(datos)) * 100, 2)
+  ) %>%
+  arrange(desc(`Frecuencia Absoluta`))
+
+tabla_pregunta1 <- bind_rows(
+  tabla_frecuencias,
+  tibble(
+    `Estado del Servidor` = "Total",
+    `Frecuencia Absoluta` = sum(tabla_frecuencias$`Frecuencia Absoluta`),
+    `Porcentaje (%)` = sum(tabla_frecuencias$`Porcentaje (%)`)
+  )
+)
+
+kable(
+  tabla_pregunta1,
+  align = c("l", "c", "c")
+)
+```
+
+---
+
+## Pregunta 2
+
+```{r pregunta-2}
+ggplot(datos, aes(x = TipoEntorno, fill = NivelCarga)) +
+  geom_bar(position = "dodge") +
+  labs(
+    title = "Nivel de Carga de Trabajo según Tipo de Entorno",
+    x = "Tipo de Entorno Operativo",
+    y = "Número de Servidores",
+    fill = "Nivel de Carga"
+  ) +
+  theme_minimal()
+```
+
+---
+
+## Pregunta 3
+
+```{r pregunta-3}
+limites_clase <- seq(0, 100, by = 10)
+
+intervalos <- cut(
+  datos$UsoCPU,
+  breaks = limites_clase,
+  right = FALSE,
+  include.lowest = TRUE
+)
+
+tabla_intervalos <- as.data.frame(table(intervalos))
+
+marcas_clase <- seq(5, 95, by = 10)
+
+poligono_datos <- data.frame(
+  MarcaClase = c(-5, marcas_clase, 105),
+  FrecuenciaAbsoluta = c(0, tabla_intervalos$Freq, 0)
+)
+
+ggplot(
+  poligono_datos,
+  aes(x = MarcaClase, y = FrecuenciaAbsoluta)
+) +
+  geom_line(color = "blue", linewidth = 1) +
+  geom_point(color = "red", size = 2) +
+  scale_x_continuous(
+    breaks = seq(-5, 105, by = 10)
+  ) +
+  labs(
+    x = "Uso de CPU (%)",
+    y = "Frecuencia Absoluta"
+  ) +
+  theme_classic()
+```
+
+---
+
+## Pregunta 4
+
+```{r pregunta-4}
+latencia_webapi <- datos %>%
+  filter(TipoEntorno == "WebAPI") %>%
+  pull(Latencia)
+
+mediana_webapi <- median(latencia_webapi)
+desv_std_webapi <- sd(latencia_webapi)
+
+cat(
+  "Mediana de Latencia (WebAPI):",
+  round(mediana_webapi, 2),
+  "ms\n"
+)
+
+cat(
+  "Desviación Estándar de Latencia (WebAPI):",
+  round(desv_std_webapi, 2),
+  "ms\n"
+)
+```
+
+---
+
+## Pregunta 5
+
+```{r pregunta-5}
+q1_ram <- quantile(
+  datos$UsoRAM,
+  probs = 0.25
+)
+
+d7_ram <- quantile(
+  datos$UsoRAM,
+  probs = 0.70
+)
+
+cat(
+  "Cuartil 1 (Q1) de Uso de RAM:",
+  round(q1_ram, 2),
+  "GB\n"
+)
+
+cat(
+  "Decil 7 (D7) de Uso de RAM:",
+  round(d7_ram, 2),
+  "GB\n"
+)
+```
+
+---
+
+## Pregunta 6
+
+```{r pregunta-6}
+ggplot(
+  datos,
+  aes(
+    x = EstadoServidor,
+    y = TasaErrores,
+    fill = EstadoServidor
+  )
+) +
+  geom_boxplot() +
+  labs(
+    title = "Distribución de Tasa de Errores según Estado del Servidor",
+    x = "Estado del Servidor",
+    y = "Tasa de Errores (%)"
+  ) +
+  theme_bw() +
+  theme(
+    legend.position = "none"
+  )
+```
+
+---
+
+## No pude hacer la 7
+

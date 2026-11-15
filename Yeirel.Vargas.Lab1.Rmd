@@ -1,0 +1,145 @@
+---
+title: "Yeirel.Vargas.Lab1"
+output:
+  html_document: default
+  pdf_document: default
+date: "2026-09-04"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+Pregunta 1: Utilice la información de la base de datos para construir un cuadro de
+distribución de frecuencias que resuma la información correspondiente a la variable Estado
+del Servidor, tome en cuenta que el cuadro deberá incluir solamente tres columnas: variable
+(clase), frecuencias absolutas simples y porcentajes. Incluya TODOS los elementos o
+componentes de presentación vistos en clase que debe tener cualquier representación de
+información para facilitar la lectura. 
+```{r pressure, echo=FALSE}
+if(!require("readxl")){
+install.packages("readxl")
+library("readxl")
+}
+datos <- read_excel("BaseDatosServidores.xlsx")
+
+
+#Frecuencia absoluta
+frec_absoluta <- as.vector(table(datos$EstadoServidor))
+#Porcentajes
+frec_porcentual <- round(prop.table(frec_absoluta) * 100)
+clases<-c("óptimo ", " Crítico","Degradado ")
+
+tabla <- data.frame(
+Variable = clases, frec_absoluta,
+frec_porcentual)
+colnames(tabla)=c("Clase ", " Frecuencia","Porcentaje ")
+
+if(!require("flextable")){
+install.packages("flextable")
+library("flextable")
+}
+tabla<-flextable::align(flextable(tabla),align="center",part = "all")
+tabla<-set_caption(tabla, "Cuadro 1 : Cuadro de distribución de frecuencias  para la variable  estado del servidor.")
+tabla <- add_footer_lines(tabla, "Fuente: Elaboración Propia ")
+tabla <- color(tabla, part ="all", color ="gray21")
+tabla <- color(tabla, part ="header", color ="gray14")
+tabla <- color(tabla, part ="footer", color ="black")
+tabla
+
+
+```
+
+Pregunta 2: Construya un gráfico que represente la información de la variable Nivel de
+Carga según Tipo de Entorno. Debe cuidar que la presentación del gráfico sea adecuada,
+pero no debe incluir TODOS los elementos o componentes de presentación vistos en clase
+que debe tener cualquier gráfico.
+```{r}
+
+#Estoy investigando
+
+```
+
+Pregunta 3:  Construya un Polígono de frecuencias absolutas para representar la Variable
+Uso de CPU, el ancho de las clases debe ser de 10, no debe tener elementos de
+presentación, pero sí debe ser legible el gráfico y cumplir con las características de un
+polígono de frecuencias absolutas.
+```{r}
+if(!require("fdth")){
+install.packages("fdth")
+library("fdth")
+}
+#esto para saber cual es el inicio y el final de toda esta columna
+str(datos$UsoCPU)
+dist_p <- fdt(
+  datos$UsoCPU, 
+  start = 0, 
+  end = 100,
+  h = 10 )
+dist_p
+plot(dist_p, type = "fp", las = 1, col = "blue",
+main = " ",
+xlab="Uso de CPU", ylab="Frecuencia",
+sub="Fuente: Elaboración propia.")+abline(h = 0)
+
+```
+
+Pregunta 4: Pregunta 4: Calcule la Mediana y desviación estándar para la variable Latencia para Tipo de
+Entorno: WebAPI.
+```{r}
+print("Mediana para la variable Latencia para Tipo de Entorno: WebAPI")
+median(datos$Latencia[datos$TipoEntorno == "WebAPI"])
+
+print("Desviación estándar para la variable Latencia para Tipo de Entorno: WebAPI")
+sd(datos$Latencia[datos$TipoEntorno == "WebAPI"])
+
+```
+
+Pregunta 5: Calcule el cuartil 1 y el decil 7 para la variable Uso de RAM.
+```{r}
+
+print("cuartial 1 para la variable uso de RAM")
+quantile(datos$UsoRAM,probs=0.25,na.rm=TRUE)
+
+print("decil 7 para la variable uso de RAM")
+quantile(datos$UsoRAM,probs=0.7,na.rm=TRUE)
+
+```
+
+Pregunta 6: Construya un diagrama de cajas para la variable Tasa de Errores según Estado
+del Servidor. Debe cuidar que la presentación del gráfico sea adecuada, pero no debe
+incluir TODOS los elementos o componentes de presentación vistos en clase que debe
+tener cualquier gráfico.
+```{r}
+boxplot(
+  datos$TasaErrores~datos$EstadoServidor,
+  main="Diagrama de cajas para la variable Tasa de Errores según Estado
+del Servidor. ",
+  xlab ="Tasa de errores",
+  ylab = "Estado del servidor", 
+  horizontal = T,
+  sub="Fuente: Elaboración propia ",
+  las=1,col= "cyan")
+
+```
+
+Pregunta 7: Determine cuál de las dos variables tiene mayor variabilidad relativa, el Número
+de Contenedores Activos para los que tienen Proveedor Cloud: AWS o Número de
+Contenedores Activos para los que tienen Proveedor Cloud: Azure. 
+```{r}
+CVPAWS<-(sd(datos$ContenedoresActivos[datos$ProveedorCloud == "AWS"])/mean(datos$ContenedoresActivos[datos$ProveedorCloud == "AWS"]))*100
+
+CVPAZURE<-(sd(datos$ContenedoresActivos[datos$ProveedorCloud == "Azure"])/mean(datos$ContenedoresActivos[datos$ProveedorCloud == "Azure"]))*100
+
+if (CVPAWS>CVPAZURE){
+print("Tiene más variabilidad el número de contenedores activos con proveedor cloud de AWS")
+} else{
+print("Tiene más variabilidad el número de contenedores activos con proveedor cloud de Azure")
+}
+
+```
+
+
+

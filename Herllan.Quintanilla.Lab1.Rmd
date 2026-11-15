@@ -1,0 +1,80 @@
+---
+title: "Laboratorio 1"
+author: "Herllan"
+date: "2026-09-04"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+if(!require("readxl")){
+install.packages("readxl")
+library("readxl")
+}
+datos<- read_excel("BaseDatosServidores.xlsx")
+
+clases <-as.data.frame(
+table(variable = factor(cut(levels(datos$EstadoServidor),
+include.lowest = T,
+right =F,
+breaks=4))) )
+
+TablaFrecont<- transform(clases,
+porcentajes=round(prop.table(Freq)*100,2))
+
+rownames(TablaFrecont)<-c("Clases", "Frecuencias absolutas", "Porcentajes")
+
+
+if(!require("flextable")){
+install.packages("flextable")
+library("flextable")
+}
+TablaFrecont<-flextable::align(flextable(TablaFrecont),
+align="center",part = "all")
+TablaFrecont<-set_caption(TablaFrecont, "Cuadro 1: tabla de frecuencias del Estado del Servidor ")
+TablaFrecont <- add_footer_lines(TablaFrecont, "Fuente: Equipo DevOps y Site Reliability Engineering")
+TablaFrecont <- color(TablaFrecont, part ="all", color ="black")
+TablaFrecont <- color(TablaFrecont, part ="header", color ="black")
+TablaFrecont <- color(TablaFrecont, part ="footer", color ="black")
+TablaFrecont
+```
+
+#3
+
+```{r}
+minimo <-min(datos$UsoCPU)
+maximo <-max(datos$UsoCPU)
+
+if(!require("fdth")){
+install.packages("fdth")
+library("fdth")
+}
+dist_p <- fdt(datos$UsoCPU, start = minimo, end =maximo , h = 10)
+dist_p
+plot(dist_p, type = "fp", las = 1, col = "blue",
+main = " ",
+xlab=" ", ylab=" ",
+sub="Fuente: ")+abline(h = 0)
+```
+
+#4
+
+```{r}
+mediana <-mean(datos$Latencia[datos$TipoEntorno == "WebAPI"])
+desviacion_estandar<-sd(datos$Latencia[datos$TipoEntorno == "WebAPI"],na.rm=TRUE)
+```
+
+#5
+```{r}
+Q1<-quantile(datos$UsoRAM,probs=25/100,na.rm=TRUE)
+Decil7<-quantile(datos$UsoRAM,probs=70/100,na.rm=TRUE)
+```
+
+#6
+```{r}
+boxplot(datos$TasaErrores~datos$EstadoServidor, main="Diagrama de cajas Tasa de Errores según Estado del Servidor", xlab ="Tasa de Errores", ylab = " ", horizontal = T,
+sub="Fuente: Equipo DevOps y Site Reliability Engineering", las=1, col = "blue")
+```

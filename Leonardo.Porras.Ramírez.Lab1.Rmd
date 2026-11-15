@@ -1,0 +1,243 @@
+---
+title: "Leonardo.Porras.Ramírez.Lab1"
+author: "Leonardo Porras"
+date: "04-09-2026"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r librerias}
+library(readxl)
+library(knitr)
+library(flextable)
+```
+
+```{r cargar-datos}
+datos <- read_excel("BaseDatosServidores.xlsx")
+```
+
+```{r estructura}
+str(datos)
+```
+
+# Pregunta 1:
+# Tabla de distribución de frecuencias
+# Variable: Estado del Servidor
+
+```{r pregunta1}
+Freq <- as.vector(table(datos$EstadoServidor))
+
+Porcentaje <- round(prop.table(Freq) * 100, 2)
+
+Estado <- names(table(datos$EstadoServidor))
+
+tabla_estado <- data.frame(
+  Estado,
+  Frecuencia_Absoluta = Freq,
+  Porcentaje
+)
+
+colnames(tabla_estado) <- c(
+  "Estado del Servidor",
+  "Frecuencia Absoluta",
+  "Porcentaje (%)"
+)
+
+tabla_estado
+
+tablaformal1 <- flextable(tabla_estado)
+
+tablaformal1 <- set_caption(
+  tablaformal1,
+  "Cuadro 1: Distribución de servidores según Estado del Servidor, tercer cuatrimestre 2025"
+)
+
+tablaformal1 <- add_footer_lines(
+  tablaformal1,
+  "Fuente: BaseDatosServidores.xlsx"
+)
+
+tablaformal1
+```
+
+**Interpretación:**
+La tabla muestra la cantidad de servidores según su estado operativo.
+El estado con mayor frecuencia representa la condición más común
+dentro de la infraestructura.
+
+# Pregunta 2:
+# Nivel de Carga según Tipo de Entorno
+
+```{r pregunta2}
+
+tabla_carga <- table(
+  datos$TipoEntorno,
+  datos$NivelCarga
+)
+
+tabla_carga
+barplot(
+  tabla_carga,
+  beside = TRUE,
+  xlab = "Tipo de Entorno",
+  ylab = "Cantidad de servidores",
+  main = "Nivel de Carga según Tipo de Entorno",
+  legend.text = TRUE,
+  las = 1
+)
+```
+
+**Interpretación:**
+El gráfico permite comparar los niveles de carga existentes
+en cada tipo de entorno de servidores
+
+# Pregunta 3:
+# Polígono de frecuencias absolutas
+# Variable: UsoCPU
+
+```{r pregunta3}
+
+clases_cpu <- seq(0, 100, 10)
+
+
+datos$Clase_CPU <- cut(
+  datos$UsoCPU,
+  breaks = clases_cpu,
+  right = FALSE,
+  include.lowest = TRUE
+)
+
+
+Freq_CPU <- as.vector(table(datos$Clase_CPU))
+
+Freq_CPU
+
+Punto_medio <- seq(5, 95, 10)
+
+poligono <- data.frame(
+  Punto_medio = c(-5, Punto_medio, 105),
+  Frecuencia = c(0, Freq_CPU, 0)
+)
+
+plot(
+  poligono$Punto_medio,
+  poligono$Frecuencia,
+  type = "o",
+  pch = 16,
+  xlab = "Uso de CPU (%)",
+  ylab = "Frecuencia Absoluta"
+)
+```
+
+**Interpretación:**
+El polígono representa la distribución de los servidores según el
+porcentaje de uso que tenga el CPU.
+
+
+# Pregunta 4:
+# Mediana y desviación estándar
+# Variable: Latencia para WebAPI
+
+```{r pregunta4}
+
+latencia_webapi <- datos$Latencia[
+  datos$TipoEntorno == "WebAPI"
+]
+
+mediana_latencia <- median(
+  latencia_webapi,
+  na.rm = TRUE
+)
+
+desviacion_latencia <- sd(
+  latencia_webapi,
+  na.rm = TRUE
+)
+
+mediana_latencia
+
+desviacion_latencia
+```
+
+**Interpretación:**
+La mediana representa el valor central de la latencia
+de los servidores webAPI.
+La desviación estándar muestra la dispersión de los datos
+en relación al promedio.
+
+# Pregunta 5:
+# Cuartil 1 y Decil 7
+# Variable: UsoRAM
+
+```{r pregunta5}
+
+RAM <- sort(datos$UsoRAM)
+
+n <- length(RAM)
+
+pos_Q1 <- n * 0.25
+
+pos_D7 <- n * 0.70
+
+Q1 <- (RAM[pos_Q1] + RAM[pos_Q1 + 1]) / 2
+D7 <- (RAM[pos_D7] + RAM[pos_D7 + 1]) / 2
+Q1
+D7
+```
+
+**Interpretación:**
+El primer cuartil indica el valor donde se encuentra
+aproximadamente el 25% de los servidores.
+
+El decil 7 indica el valor donde se encuentra
+aproximadamente el 70% de los servidores.
+
+# Pregunta 6:
+# Diagrama de cajas
+# Variable: TasaErrores según EstadoServidor
+
+```{r pregunta6}
+boxplot(
+  datos$TasaErrores ~ datos$EstadoServidor,
+  xlab = "Estado del Servidor",
+  ylab = "Tasa de Errores (%)",
+  main = "Tasa de Errores según Estado del Servidor"
+)
+```
+
+**Interpretación:**
+El diagrama compara la distribución de errores
+entre los diferentes estados de los servidores utilizados.
+Los estados con peor condición son los que más presentan errores.
+
+# Pregunta 7:
+# Variabilidad relativa
+# AWS vs Azure
+# Variable: ContenedoresActivos
+
+```{r pregunta7}
+
+cloud <- datos[
+  datos$ProveedorCloud %in% c("AWS", "Azure"),
+]
+
+resultado_cv <- aggregate(
+  ContenedoresActivos ~ ProveedorCloud,
+  data = cloud,
+  FUN = function(x)
+    c(
+      Media = mean(x),
+      Desviacion = sd(x),
+      CV = sd(x) / mean(x) * 100
+    )
+)
+
+resultado_cv
+```
+**Interpretación:**
+El proveedor que tenga el mayor coeficienre de variación
+presenta mayor variabilidad relativa en la cantidad
+de contenedores activos.

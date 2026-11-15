@@ -1,0 +1,117 @@
+---
+title: "Jose.Medina.Lab1"
+author: "Jose Medina"
+date: "2026-09-04"
+output: html_document
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r librerias}
+if(!require("readxl")){
+  install.packages("readxl")
+  library("readxl")
+}
+if(!require("flextable")){
+  install.packages("flextable")
+  library("flextable")
+}
+if(!require("fdth")){
+  install.packages("fdth")
+  library("fdth")
+}
+datos <- read_excel("BaseDatosServidores.xlsx")
+```
+
+##Pregunta 1
+
+```{r pregunta1}
+frecAbsoluta <- as.vector(table(datos$EstadoServidor))
+frecPorcentual <- round(prop.table(frecAbsoluta) * 100, 2)
+nombre1 <- c("Critico", "Degradado", "Optimo")
+tabla <- data.frame(Variable = nombre1, frecAbsoluta, frecPorcentual)
+colnames(tabla) <- c("Estado del Servidor", "Frecuencia Absoluta", "Porcentaje")
+tabla <- flextable::align(flextable(tabla), align = "center", part = "all")
+tabla <- set_caption(tabla, "Cuadro 1: ")
+tabla <- add_footer_lines(tabla, "Fuente: BaseDatosServidores.xlsx")
+tabla <- color(tabla, part = "all", color = "gray21")
+tabla <- color(tabla, part = "header", color = "gray14")
+tabla <- color(tabla, part = "footer", color = "black")
+tabla
+```
+
+##Pregunta 2
+
+```{r pregunta2}
+tablaContingencia <- table(datos[c("TipoEntorno", "NivelCarga")])
+rownames(tablaContingencia) <- c("BD", "Batch", "WebAPI")
+colnames(tablaContingencia) <- c("Alto", "Bajo", "Medio")
+barrasComparativas <- barplot(tablaContingencia,
+                              ylab = "Frecuencia",
+                              xlab = "Tipo de Entorno",
+                              main = "Nivel de Carga segun Tipo de Entorno",
+                              sub = "Fuente: BaseDatosServidores.xlsx",
+                              beside = T,
+                              col = rainbow(3),
+                              legend.text = c("Alto", "Bajo", "Medio"),
+                              args.legend = list(x = "topright", cex = 0.5))
+```
+
+##Pregunta 3
+
+```{r pregunta3}
+distP <- fdt(datos$UsoCPU, start = 10, end = 100, h = 10)
+distP
+plot(distP, type = "fp", las = 1, col = "blue",
+     main = "Poligono de Frecuencias del Uso de CPU",
+     xlab = "Uso de CPU",
+     ylab = "Frecuencia",
+     sub = "Fuente: BaseDatosServidores.xlsx")
+```
+
+##Pregunta 4
+
+```{r pregunta4}
+latenciaWebapi <- datos$Latencia[datos$TipoEntorno == "WebAPI"]
+medianaLat <- median(latenciaWebapi)
+cat("El 50% de los servidores WebAPI tienen una Latencia menor o igual a", medianaLat, "ms.")
+sdLat <- sd(latenciaWebapi)
+cat("La Latencia de los servidores WebAPI se aleja en promedio", sdLat, "ms de la media.")
+```
+
+##Pregunta 5
+
+```{r pregunta5}
+cuartil1 <- quantile(datos$UsoRAM, probs = 25/100, na.rm = TRUE)
+cat("El 25% de los servidores tiene un Uso de RAM menor o igual a", cuartil1, "GB.")
+decil7 <- quantile(datos$UsoRAM, probs = 70/100, na.rm = TRUE)
+cat("El 70% de los servidores tiene un Uso de RAM menor o igual a", decil7, "GB.")
+```
+
+##Pregunta 6
+
+```{r pregunta6}
+boxplot(datos$TasaErrores ~ datos$EstadoServidor,
+        main = "Tasa de Errores segun Estado del Servidor",
+        xlab = "Estado del Servidor",
+        ylab = "Tasa de Errores",
+        horizontal = T,
+        sub = "Fuente: BaseDatosServidores.xlsx",
+        las = 1,
+        col = "blue")
+```
+
+##Pregunta 7
+
+```{r pregunta7}
+contAws <- datos$ContenedoresActivos[datos$ProveedorCloud == "AWS"]
+contAzure <- datos$ContenedoresActivos[datos$ProveedorCloud == "Azure"]
+cv1 <- (sd(contAws) / mean(contAws)) * 100
+cv2 <- (sd(contAzure) / mean(contAzure)) * 100
+if (cv1 > cv2){
+  print("La variable Contenedores Activos en AWS es mas variable")
+} else{
+  print("La variable Contenedores Activos en Azure es mas variable")
+}
+```

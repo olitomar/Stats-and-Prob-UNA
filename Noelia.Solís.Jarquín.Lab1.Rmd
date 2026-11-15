@@ -1,0 +1,249 @@
+---
+title: "Análisis y Monitoreo de Métricas de Servidores en la Nube"
+author: "Noelia Solis"
+date: "2026-09-04"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+
+
+library(readxl)
+
+datos <- read_excel("BaseDatosServidores.xlsx")
+
+head(datos)
+
+
+```
+#===========================================================
+#Pregunta 1.
+#Tabla de Frecuencias sobre Variables de Estado del Servidor
+#============================================================
+```{r}
+
+estado <- datos$EstadoServidor
+
+estado_absoluta <- as.vector(
+  table(estado)
+)
+
+estado_porcentaje <- as.vector(
+  round(prop.table(table(estado))*100,2)
+)
+
+tabla_estado <- data.frame(
+  Variable = levels(as.factor(estado)),
+  Frecuencia_Absoluta = estado_absoluta,
+  Porcentaje = estado_porcentaje
+)
+tabla_estado
+
+
+if(!require("flextable")){
+  install.packages("flextable")
+}
+
+library(flextable)
+
+tabla <- flextable::align(
+  flextable(tabla_estado),
+  align="center",
+  part="all"
+)
+
+table <- set_caption(
+  tabla,
+  "Cuadro 1: Distribución de frecuencias del Estado del Servidor"
+)
+
+tabla <- add_footer_lines(
+  tabla,
+  "Fuente: BaseDatosServidores.xlsx"
+)
+
+tabla <- color(tabla, part="all", color="black")
+tabla <- color(tabla, part="header", color="purple")
+tabla <- color(tabla, part="footer", color="red")
+
+table
+
+
+```
+
+#===========================================================
+#Pregunta 2.
+#Gráfico del Nivel de Carga según Tipo de Entorno
+#============================================================
+```{r}
+
+tabla_carga <- table(
+  datos$TipoEntorno,
+  datos$NivelCarga
+)
+
+tabla_carga
+
+barplot(
+  tabla_carga,
+  beside=TRUE,
+  main="Nivel de Carga según Tipo de Entorno",
+  xlab="Tipo de Entorno",
+  ylab="Frecuencia"
+)
+
+```
+#===========================================================
+#Pregunta 3.
+#Polígono de Frecuencias absolutas, Variable de Uso de CPU
+#============================================================
+```{r}
+
+clases_cpu <- cut(
+datos$UsoCPU,breaks=seq(floor(min(datos$UsoCPU)/10)*10,ceiling(max(datos$UsoCPU)/10)*10,by=10),
+  right=FALSE
+)
+
+frecuencia_cpu <- table(clases_cpu)
+
+limites_cpu <- attr(clases_cpu, "breaks")
+
+puntos_medios <- (
+  limites_cpu[-1] +
+  limites_cpu[-length(limites_cpu)]
+)/2
+
+plot(
+  puntos_medios,
+  as.vector(frecuencia_cpu),
+  type="o",
+  xlab="Uso de CPU (%)",
+  ylab="Frecuencia absoluta"
+)
+
+
+
+```
+#===========================================================
+#Pregunta 4.
+#Calcular Mediana y desviación estándar, para la Variable Latencia para Tipo de Entorno: WebAPI
+#============================================================
+```{r}
+
+latencia_webapi <- datos$Latencia[
+  datos$TipoEntorno=="WebAPI"
+]
+
+mediana_webapi <- median(
+  latencia_webapi,
+  na.rm=TRUE
+)
+
+mediana_webapi
+
+desviacion_webapi <- sd(
+  latencia_webapi,
+  na.rm=TRUE
+)
+
+desviacion_webapi
+```
+
+
+#===========================================================
+#Pregunta 5.
+#Cuartil 1 y  el decil 7 para la variable Uso de Ram.
+#============================================================
+
+```{r}
+
+Q1 <- quantile(
+  datos$UsoRAM,
+  probs=25/100,
+  na.rm=TRUE
+)
+
+Q1
+
+
+D7 <- quantile(
+  datos$UsoRAM,
+  probs=70/100,
+  na.rm=TRUE
+)
+
+D7
+
+```
+#===========================================================
+#Pregunta 6.
+#Diagrama de Cajas, Tasa de Errores según Estado del Servidor
+#============================================================
+
+```{r}
+boxplot
+( 
+TasaErrores ~ TasaErrores, data=datos, main="Tasa de Errores según Estado del Servidor", xlab ="Estado del Servidor", ylab = "Tasa de Errores (%) ", las=1)
+
+
+```
+
+#===========================================================
+#Pregunta 7.
+#Mayor Variabilidad relativa, Números de Contenedores Activos
+#============================================================
+```{r}
+
+contenedores_aws <- datos$ContenedoresActivos[
+  datos$ProveedorCloud=="AWS"
+]
+
+contenedores_azure <- datos$ContenedoresActivos[
+  datos$ProveedorCloud=="Azure"
+]
+
+
+CV_aws <- (
+  sd(contenedores_aws, na.rm=TRUE) /
+  mean(contenedores_aws, na.rm=TRUE)
+)*100
+
+CV_aws
+
+
+CV_azure <- (
+  sd(contenedores_azure, na.rm=TRUE) /
+  mean(contenedores_azure, na.rm=TRUE)
+)*100
+
+CV_azure
+
+
+if(CV_aws>CV_azure){
+
+  print("Los Contenedores Activos de AWS tienen mayor variabilidad relativa")
+
+}else{
+
+  print("Los Contenedores Activos de Azure tienen mayor variabilidad relativa")
+
+}
+
+
+```
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,154 @@
+---
+title: "R Notebook - Pruebas de Hipotesis"
+output:
+  word_document: default
+  html_notebook: default
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
+plot(cars)
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+
+\newpage
+
+Instalamos los paquetes necesarios:
+
+```{r}
+if(!require("BSDA")){
+install.packages("BSDA")
+library(BSDA)
+}
+```
+
+Pruebas de hipótesis para una media poblacional
+Varianza conocida y muestras grandes (n > 30) o Varianza
+conocida y muestras pequeñas (n ≤ 30) de población normal:
+
+Ejemplo 3
+
+```{r}
+
+zsum.test(mean.x = 38000,n.x = 50, alternative="less" , mu=40000 ,sigma.x=3500)
+```
+Conclusión: Se rechaza la hipótesis nula.
+Interpretación: Con una significancia del 5% existe suficiente
+evidencia estadística para concluir que el promedio de vida de
+las llantas es menor a 40000 millas.
+
+---
+
+Ejemplo 4: 
+
+
+```{r}
+zsum.test(mean.x=83.25,sigma.x=11,n.x=31,alternative="two.sided",mu=90)
+```
+Conclusión: Se rechaza la hipótesis nula.
+Interpretación: Con una significancia del 5% existe suficiente
+evidencia estadística para concluir que la puntuación promedio
+en la prueba de aptitudes es distinta de 90 puntos
+
+---
+
+
+```{r}
+datos <- c(28,57,42,35,61,39,55,46,49,38)
+t.test(datos,alternative="less",mu=40)
+```
+Conclusión: No se rechaza la hipótesis nula.
+Interpretación: Con una significancia del 5% no existe suficiente
+evidencia estadística para concluir que el tiempo promedio de
+estudio durante la semana previa a los exámenes es menor a 40
+horas, Es decir, no se puede contradecir a los profesores.
+
+---
+
+Otro ejemplo 5 (pesos promedio de alumnas)
+
+```{r}
+
+```
+
+Conclusion: Se rechaza la hipótesis nula
+Interpretación: Con una significancia del 5% existe suficiente
+evidencia estadística para concluir peso promedio de la alumnas
+de un curso particular de la universidad es distinta de 54.4 kg,
+es decir, el profesor estaba en lo correcta.
+
+---
+
+Ejercicio (Duracion bombillo 75 Watts)
+
+```{r}
+zsum.test(mean.x = 1014,sigma.x = 65,n.x=40,alternative="less",mu=1000)
+```
+
+Conclusion: No se rechaza la hipótesis nula
+Interpretación: Con una significancia del 5% no existe suficiente
+evidencia estadística para concluir que la duracion promedio de los bombillos es menor a 1000h. Es decir la afirmacion del fabricante se mantiene.
+
+---
+
+Ejercicio (boletos de avion)
+
+```{r}
+
+```
+
+Ejemplo 6 (Competencia de companias - focos)
+
+```{r}
+zsum.test(mean.x = 647,sigma.x = 27,n.x=40,mean.y = 638,sigma.y = 31,n.y=40,alternative = "less",mu=0)
+```
+Conclusión:No se rechaza la hipótesis nula.
+Interpretación:Con una significancia del 5% no existe 
+suficiente evidencia estadística para concluir que los focos de 
+la compañia son superiores a los de su principal competidor.
+
+---
+
+Ejemplo 7 (Volkswagen vs Toyota)
+
+```{r}
+tsum.test(mean.x=17,s.x=1,n.x=12,mean.y = 11,s.y=1.8,n.y=10,mu=4,alternative="greater",var.equal=TRUE,conf.level=0.99)
+```
+
+Conclusión: se rechaza la hipótesis nula.
+Interpretación: Con una significancia del 1% existe suficiente
+evidencia estadística para concluir que los vehículos
+Volkswagen, en promedio exceden a los Toyota por 4km/l
+
+---
+
+Ejemplo 8 (Huggies)
+
+```{r}
+prop.test(80, 115, p=0.7, alternative = "less", conf.level = 0.99)
+```
+Conclusión: No se rechaza la hipótesis nula.
+Interpretación: Con una significancia del 1% no existe
+suficiente evidencia estadística para concluir que Proporción
+de los padres prefieren sus toallitas húmedas Huggies es menor
+al 70%. 
+
+---
+
+Ejercicio 12 - lista practica (prueba hipotesis)
+
+```{r}
+zsum.test(mean.x = 18.86,sigma.x = 5.6,n.x=78,alternative="greater",mu=20,conf.level = 0.96)
+```
+Conclusion: No se rechaza la hipotesis nula
+
+Interpretacion:  Con una significancia del 4% no existe
+suficiente evidencia estadística para concluir que el tiempo promedio que permanece sedado un caballo es mayor a 20min

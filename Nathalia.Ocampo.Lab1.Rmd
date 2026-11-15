@@ -1,0 +1,244 @@
+---
+title: "Análisis Servidores en la Nube"
+author: "Nathalia Ocampo Zamora"
+date: "31-08-2026"
+output: html_document
+---
+
+```{r configuracion, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  warning = FALSE,
+  message = FALSE
+)
+
+#importar librerias 
+library(readxl)
+library(ggplot2)
+library(dplyr)
+library(knitr)
+```
+
+#lectura de datos 
+
+```{r lectura-datos}
+servidores <- read_excel("BaseDatosServidores.xlsx")
+
+dim(servidores)
+head(servidores)
+```
+
+#Pregunta 1: utilice la información de la base de datos para construir un cuadro de distribución de frecuencias de la variable Estado del Servidor.
+#Frecuencia absoluta simple 
+
+##################CHEKEA LO DEL DOC #########################
+#SEGUNDA PAG FORMULAS DESCRIPTIVAS 
+```{r pregunta-1}
+frecuencia_estado <- as.data.frame(table(servidores$EstadoServidor))
+
+names(frecuencia_estado) <- c(
+  "Estado del servidor",
+  "Frecuencia absoluta",
+  "Porcentaje"
+)
+#porcentage de las frecuencias dadas, porcentage cant datos div 100
+frecuencia_estado$Porcentaje <- round(frecuencia_estado$`Frecuencia absoluta` / sum(frecuencia_estado$`Frecuencia absoluta`)*100
+
+```
+
+#Pregunta 2: construya un gráfico que represente la información de la variable nivel de carga segun tipo de entorno. 
+#pagina 7 en formulas descrptivas 
+
+```{r pregunta-2, fig.width=8, fig.height=5}
+ggplot(
+  servidores,
+  aes(
+    x = TipoEntorno,
+    fill = NivelCarga
+  )
+) +
+  geom_bar(
+    position = "dodge",
+    color = "black"
+  ) +
+  labs(
+    title = "Nivel de carga según tipo de entorno",
+    x = "Tipo de entorno",
+    y = "Cantidad de servidores",
+    fill = "Nivel de carga"
+  ) +
+  scale_fill_manual(
+    values = c(
+      "Alto" = "#D95F5F",
+      "Medio" = "#E6B85C",
+      "Bajo" = "#63A86B"
+    )
+  ) +
+  theme_minimal()
+```
+
+#Pregunta 3: Construya un polígono de frecuencias absolutas para representar la variable Uso de CPU. El ancho de las clases debe ser de 10.
+
+```{r pregunta-3, fig.width=8, fig.height=5}
+#limites de clases 
+limites_cpu <- seq(
+  from = 10,
+  to = 100,
+  by = 10
+)
+
+distribucion_cpu <- hist(
+  servidores$UsoCPU,
+  breaks = limites_cpu,
+  right = FALSE,
+  include.lowest = TRUE,
+  plot = FALSE
+)
+
+#puntos medios 
+puntos_medios <- c(
+  distribucion_cpu$mids[1] - 10,
+  distribucion_cpu$mids,
+  tail(distribucion_cpu$mids, 1) + 10
+)
+
+#se guardan las frecuencias absolutas 
+frecuencias_cpu <- c(0,distribucion_cpu$counts,0)
+
+#poligono frecuencias absolutas 
+plot(
+  puntos_medios,
+  frecuencias_cpu,
+  type = "o",
+  pch = 16,
+  lwd = 2,
+  xaxt = "n",
+  xlab = "Uso de CPU (%)",
+  ylab = "Frecuencia absoluta"
+)
+#puntos medios en el eje horizzontal
+axis(
+  side = 1,
+  at = puntos_medios
+)
+```
+
+#Pregunta 4. calcule la mediana y la desviación estándar para la variable Latencia de los servidores cuyo Tipo de Entorno es WebAPI.
+
+```{r pregunta-4}
+#selecciona solo los valores de Latencia
+latencia_webapi <- servidores$Latencia[
+  servidores$TipoEntorno == "WebAPI"
+]
+
+# Se calcula la mediana
+mediana_latencia <- median(latencia_webapi,na.rm = TRUE)
+
+# Se calcula la desviación estándar
+desviacion_latencia <- sd(latencia_webapi,na.rm = TRUE
+)
+# Se muestran los resultados.
+cat(
+  "Mediana de latencia para WebAPI:",
+  mediana_latencia,
+  "ms\n"
+)
+
+cat(
+  "Desviación estandar de latencia para WebAPI:",
+  round(desviacion_latencia, 2),
+  "ms"
+)
+```
+
+La mediana de la Latencia para los servidores WebAPI es de **35.6 ms** y la desviación estándar es de **40.03 ms**.
+
+#Pregunta 5: Calcule el cuartil 1 y el decil 7 para la variable Uso de RAM.
+
+```{r pregunta-5}
+#primer cuartil percentil 25
+cuartil_1 <- quantile(
+  servidores$UsoRAM,
+  probs = 0.25,
+  na.rm = TRUE
+)
+
+#septimo  al percentil 70.
+decil_7 <- quantile(
+  servidores$UsoRAM,
+  probs = 0.70,
+  na.rm = TRUE
+)
+
+# Se muestran los resultados.
+cat(
+  "Cuartil 1 del Uso de RAM:",
+  cuartil_1,
+  "GB\n"
+)
+
+cat(
+  "Decil 7 del Uso de RAM:",
+  decil_7,
+  "GB"
+)
+
+```
+
+#Pregunta 6. construya un diagrama de cajas para la variable Tasa de Errores según el Estado del Servidor.
+
+```{r pregunta-6, fig.width=8, fig.height=5}
+# Se construye el diagrama de cajas.
+# La TasaErrores se compara según el EstadoServidor.
+ggplot(
+  servidores,
+  aes(
+    x = EstadoServidor,
+    y = TasaErrores,
+    fill = EstadoServidor
+  )
+) +
+  geom_boxplot(
+    color = "black",
+    alpha = 0.8
+  ) +
+  labs(
+    title = "Tasa de errores según estado del servidor",
+    x = "Estado del servidor",
+    y = "Tasa de errores (%)"
+  ) +
+  scale_fill_manual(
+    values = c(
+      "Óptimo" = "#63A86B",
+      "Degradado" = "#E6B85C",
+      "Crítico" = "#D95F5F"
+    )
+  ) +
+  theme_minimal() +
+  theme(
+    legend.position = "none"
+  )
+```
+
+#Pregunta 7: 
+\[
+CV = \frac{s}{\bar{x}} \times 100
+\]
+
+```{r pregunta-7}
+contenedores_aws <- servidores$ContenedoresActivos[servidores$ProveedorCloud == "AWS"]
+
+contenedores_azure <- servidores$ContenedoresActivos[servidores$ProveedorCloud == "Azure"]
+
+#coeficiente de variación de AWS.
+cv_aws <- (sd(contenedores_aws, na.rm = TRUE) / mean(contenedores_aws, na.rm = TRUE)) * 100
+
+# Se calcula el coeficiente de variación de Azure.
+cv_azure <- (sd(contenedores_azure, na.rm = TRUE) / mean(contenedores_azure, na.rm = TRUE)) * 100
+
+cat(
+  "Coeficiente de variación de AWS:",round(cv_aws, 2),"%\n")
+
+cat(
+  "Coeficiente de variación de Azure:",round(cv_azure, 2),"%")
+```

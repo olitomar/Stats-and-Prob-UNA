@@ -1,0 +1,128 @@
+---
+title: "Greivin.Oporta.Balmaceda.Lab1"
+output: html_document
+date: "2026-09-04"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Pregunta 1
+
+```{r}
+
+rm(list=ls())
+
+
+if(!require("readxl")){
+  install.packages("readxl")
+  library("readxl")
+}
+
+
+if(!require("flextable")){
+  install.packages("flextable")
+  library("flextable")
+}
+
+
+datos <- read_excel("BaseDatosServidores.xlsx")
+
+
+frecuenciaAbsoluta <- as.vector(table(datos$EstadoServidor))
+
+
+frecuenciaPorcentual <- round(prop.table(frecuenciaAbsoluta) * 100, 2)
+
+
+estado <- c("Critico", "Degradado", "Optimo")
+
+
+tabla1 <- data.frame(estado, frecuenciaAbsoluta, frecuenciaPorcentual)
+
+
+colnames(tabla1) <- c("Estado del Servidor", "Frecuencia Absoluta", "Porcentaje")
+
+tabla1 <- flextable::align(flextable(tabla1), align="center", part="all")
+
+tabla1 <- color(tabla1, part="all", color="black")
+tabla1 <- color(tabla1, part="header", color="black")
+tabla1 <- color(tabla1, part="footer", color="black")
+
+tabla1
+```
+
+## Pregunta 2
+
+```{r}
+
+tabla2 <- table(datos$NivelCarga, datos$TipoEntorno)
+
+
+barplot(tabla2, beside=TRUE, legend.text=TRUE, main="Nivel de Carga según Tipo de Entorno",
+xlab="Tipo de Entorno", ylab="Frecuencia")
+```
+
+## Pregunta 3
+
+#NO PUDE
+
+## Pregunta 4
+
+```{r}
+
+latenciaWeb <- datos$Latencia[datos$TipoEntorno=="WebAPI"]
+
+
+mediana <- median(latenciaWeb)
+
+
+desviacion <- sd(latenciaWeb)
+
+mediana
+desviacion
+```
+
+## Pregunta 5
+
+```{r}
+
+cuartil1 <- quantile(datos$UsoRAM, probs=25/100, na.rm=TRUE)
+
+
+decil7 <- quantile(datos$UsoRAM, probs=70/100, na.rm=TRUE)
+
+cat("Cuartil1:")
+cuartil1
+cat("Decil7:")
+decil7
+```
+
+## Pregunta 6
+
+#no se como se hace profe, muy dificil
+
+## Pregunta 7
+
+```{r}
+
+AWS <- datos$ContenedoresActivos[datos$ProveedorCloud=="AWS"]
+Azure <- datos$ContenedoresActivos[datos$ProveedorCloud=="Azure"]
+
+CV_AWS <- sd(AWS)/mean(AWS)*100
+
+
+CV_Azure <- sd(Azure)/mean(Azure)*100
+
+
+CV_AWS
+CV_Azure
+
+
+if(CV_AWS > CV_Azure){
+  cat("AWS tiene mayor")
+}else{
+  cat("Azure tiene mayor")
+}
+```

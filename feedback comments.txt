@@ -1,0 +1,24 @@
+pregunta 1 - texto fuente no es parte del cuadro 5/7
+pregunta 7 - no se cerro el bloque de codigo 3/5
+no incluyo html/pdf -10
+
+lectura de datos no sucede (0/2)
+Pregunta 1 no hay codigo (0/7)
+Pregunta 3 grafico no tiene titulo (5/6)
+Pregunta 4 no hay codigo (0/4)
+Pregunta 5 no hay codigo (0/4)
+pregunta 6 no carga codigo (3/6)
+no incluyo html/pdf -10
+Archivo R en vez de rmd -5
+
+lectura de datos no sucede (0/2)
+Pregunta 1 no hay codigo (0/7)
+Pregunta 3 grafico no tiene titulo (5/6)
+Pregunta 4 no hay codigo (0/4)
+Pregunta 5 no hay codigo (0/4)
+pregunta 6 no carga codigo (3/6)
+no incluyo html/pdf -10
+
+lectura de datos no sucede (0/2)
+Codigo no carga debido a errores (-10)
+no incluyo html/pdf (-10)

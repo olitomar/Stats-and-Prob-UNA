@@ -1,0 +1,135 @@
+---
+title: "Laboratorio1"
+author: "DervinRamirez"
+date: "2026-09-04"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Respuesta 1
+
+```{r}
+#Librerias
+library("readxl")
+
+library("flextable")
+
+
+#Agregamos la base de datos a una variable datosServidor
+datosServidor <- read_excel("BaseDatosServidores.xlsx")
+
+#Se saca la frecuencia absoluta y porcentual
+frecuenciaAb <- as.vector(table(datosServidor$EstadoServidor))
+
+frecuenciaPorcent <- round(prop.table(frecuenciaAb) * 100, 2)
+
+#Creamos un vector con los 3 estados
+estado <- c("Critico", "Degradado", "Optimo")
+
+
+tabla1 <- data.frame(estado, frecuenciaAb, frecuenciaPorcent)
+
+#Aqui ponmos etiquetas a las columnas
+colnames(tabla1) <- c("|Estado| |del| |Servidor|",
+                      "|Frecuencia| |Absoluta|",
+                      "|Porcentaje|")
+
+#Creamos la tabla
+tabla1 <- flextable::align(
+  flextable(tabla1),
+  align="center",
+  part="all"
+)
+
+tabla1 <- set_caption(
+  tabla1,
+  "-----Distribución del Servidor-----"
+)
+
+tabla1 <- add_footer_lines(
+  tabla1,
+  "----Bases de Datos de Servidores----"
+)
+
+tabla1 <- color(tabla1, part="all", color="black")
+tabla1 <- color(tabla1, part="header", color="blue")
+tabla1 <- color(tabla1, part="footer", color="Red")
+
+tabla1
+```
+## Respuesta 2
+
+```{r}
+#Creamos otra tabla
+tabla2 <- table(datosServidor$NivelCarga, datosServidor$TipoEntorno)
+
+# creamos grafico de barras comparativo
+barplot(tabla2,
+        beside=TRUE,
+        legend.text=TRUE,
+        main="Nivel de Carga ",
+        xlab="Tipo de Entorno",
+        ylab="Frecuencia")
+```
+## Respuesta 3
+
+
+```{r}
+#libreria
+
+  library("fdth")
+
+
+# Cremos la distribucion de frecuencia en 10 h=10
+distribucionCpu <- fdt(datosServidor$UsoCPU,
+                start=min(datosServidor$UsoCPU),
+                end=max(datosServidor$UsoCPU),
+                h=10)
+
+# Creamos frecuencias absolutas
+plot(distribucionCpu,
+     type="fp",
+     las=1)
+```
+## Respuesta 4
+
+```{r}
+# 
+latenciaWeb <- datosServidor$Latencia[datosServidor$TipoEntorno=="WebAPI"]
+
+# Calculamos la mediana
+mediana <- median(latenciaWeb)
+
+# Calculamos la desviacion
+desviacion <- sd(latenciaWeb)
+
+
+mediana
+desviacion
+```
+## Respuesta 5
+
+```{r}
+# Calculamos el quartil 25%
+cuartil1 <- quantile(datosServidor$UsoRAM, probs=25/100, na.rm=FALSE)
+
+# Calculamos el decil 70%
+decil7 <- quantile(datosServidor$UsoRAM, probs=70/100, na.rm=TRUE)
+
+
+cuartil1
+decil7
+```
+## Respuesta 6
+
+```{r}
+# Creamos digrama de tasas
+boxplot(TasaErrores ~ EstadoServidor,
+        data=datosServidor,
+        main="Porcentaje según  el Estado del Servidor",
+        xlab="Estados",
+        ylab="Porcentaje de Errores")
+```

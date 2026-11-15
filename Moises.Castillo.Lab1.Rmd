@@ -1,0 +1,113 @@
+---
+title: "Moises.CastilloMadrigal.Lab1.Rmd"
+author: "Castillo Madrigal Moises Fernando"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r pressure, include=FALSE}
+if(!require("readxl")){install.packages("readxl")}
+library("readxl")
+
+
+baseDatos= read_xlsx("BaseDatosServidores.xlsx")
+
+if(!require("flextable")){
+install.packages("flextable")
+library("flextable")
+}
+
+if(!require("ggplot2")){
+install.packages("ggplot2")
+library("ggplot2")
+}
+```
+
+# Pregunta 1:
+
+```{r ej1, echo=FALSE}
+
+frec_absoluta <- as.vector(table(baseDatos$EstadoServidor))
+frec_porcentual <- round(prop.table(frec_absoluta) * 100,2)
+
+tabla <- data.frame(names(table(baseDatos$EstadoServidor)),frec_absoluta,frec_porcentual)
+
+tabla<-flextable::align(flextable(tabla),align="center",part = "all")
+tabla <-set_caption(tabla, "Cuadro :")
+tabla <- add_footer_lines(tabla, "Fuente: ")
+tabla <- color(tabla, part ="all", color ="gray21")
+tabla <- color(tabla, part ="header", color ="gray14")
+tabla <- color(tabla, part ="footer", color ="black")
+tabla
+
+```
+
+# Pregunta 2:
+gráficode la información de la variable Nivel de Carga según Tipo de Entorno.
+```{r ej2, echo=FALSE}
+
+#clasesNivelSegunEntorno = split(baseDatos$NivelCarga , baseDatos$TipoEntorno)
+#clasesNivelSegunEntorno
+
+#ggplot(data.frame(clasesNivelSegunEntorno),aes(x = clasesNivelSegunEntorno, fill =baseDatos$TipoEntorno)) +geom_col()
+
+#ggplot(datos, aes(x = Estado, fill = Sexo)) +geom_bar(position = "dodge") 
+
+ggplot(baseDatos,aes(x = baseDatos$TipoEntorno, fill =baseDatos$NivelCarga)) +geom_bar()
+
+```
+
+
+
+
+
+# Pregunta 3: 
+Polígono de frecuencias absolutas para Uso de CPU, EN 10 CLASES(6PTS)
+
+```{r EJ3, echo=FALSE}
+clasesUsoCpu= cut(
+  baseDatos$UsoCPU,
+  breaks = seq(0, 100, by = 10),
+  right = FALSE
+)
+tabla_frecuencias <- table(clasesUsoCpu)
+frecuencias <- as.numeric(table(clasesUsoCpu))
+
+marcas <- seq(5, 95, by = 10)
+
+
+ggplot(data.frame(marcas, frecuencias),aes(x = marcas, y = frecuencias))+geom_line() +geom_point()
+```
+
+
+# Pregunta 4
+Calcule la Mediana y desviación estándar para la variable Latencia para Tipo de 
+Entorno: WebAPI. (4 puntos)
+```{r,echo=FALSE}
+claseLatenciaEnWebAPI <- baseDatos$Latencia[baseDatos$TipoEntorno == "WebAPI"]
+
+mediana<-median(claseLatenciaEnWebAPI)
+deviacion = sd(claseLatenciaEnWebAPI,na.rm=TRUE)
+
+cat("mediana",mediana)
+cat("deviacion", deviacion)
+
+```
+
+
+# Pregunta 5:
+Calcule el cuartil 1 y el decil 7 para la variable Uso de RAM. (4 puntos)
+````{r ej5,echo=FALSE}
+
+nombre<-quantile(baseDatos$UsoRAM,probs=0.07,na.rm=TRUE)
+cat("percentil 7", quantile(baseDatos$UsoRAM,probs=0.07,na.rm=TRUE))
+cat("cuartil 1", quantile(baseDatos$UsoRAM,probs=0.25,na.rm=TRUE))
+
+````
+
+

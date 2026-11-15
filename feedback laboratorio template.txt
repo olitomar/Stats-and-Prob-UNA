@@ -1,0 +1,12 @@
+Lectura datos (/2)
+Pregunta 1 (/7)
+Pregunta 2 (/6)
+Pregunta 3 (/6)
+Pregunta 4 (/4)
+Pregunta 5 (/4)
+Pregunta 6 (/6)
+Pregunta 7 (/5) 
+
+archivo rar no admisible (-5)
+nombre archivo incorrecto (-3)
+falta archivo rmd/pdf/html (-5)

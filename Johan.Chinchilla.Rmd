@@ -1,0 +1,375 @@
+---
+title: "Laboratorio1"
+author: "Johan Chinchilla Corrales"
+date: "2026-09-04"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(readxl)
+library(dplyr)
+library(ggplot2)
+library(knitr)
+```
+
+## Lectura de datos
+
+```{r lectura de los datos del exel}
+datosServidor <- read_excel("BaseDatosServidores.xlsx")
+
+head(datosServidor)
+```
+
+```{r variables}
+names(datosServidor)
+```
+
+---
+
+# Pregunta 1
+
+# Cuadro de distribucion
+
+```{r cuandro de frecuencias}
+tabla_estado <- datosServidor %>%
+  count(EstadoServidor, name = "Frecuencia") %>%
+  mutate(
+    Porcentaje = round(
+      Frecuencia / sum(Frecuencia) * 100,
+      2
+    )
+  )
+
+tabla_estado
+```
+
+Tabla:
+
+```{r tabla}
+kable(
+  tabla_estado,
+  col.names = c(
+    "Estado",
+    "Frecuencia absoluta simple",
+    "Porcentaje"
+  ),
+  caption = "Tabla 1. Distribución de frecuencias del Estado del Servidor"
+)
+```
+
+---
+
+# Pregunta 2
+
+# Grafico para representar el nivel de carga
+
+```{r grafico}
+ggplot(
+  datosServidor,
+  aes(
+    x = TipoEntorno,
+    fill = NivelCarga
+  )
+) +
+  geom_bar(
+    position = "dodge"
+  ) +
+  labs(
+    title = "Nivel de Carga según Tipo de Entorno",
+    x = "Tipo de Entorno",
+    y = "Frecuencia",
+    fill = "Nivel de Carga"
+  ) +
+  theme_minimal()
+```
+
+---
+
+# Pregunta 3
+
+# Construir un poligono de frecuencias absolutas
+
+```{r poligono}
+clases_cpu <- cut(
+  datosServidor$UsoCPU,
+  breaks = seq(0, 100, by = 10),
+  include.lowest = TRUE,
+  right = FALSE
+)
+
+tabla_cpu <- as.data.frame(
+  table(clases_cpu)
+)
+
+names(tabla_cpu) <- c(
+  "Clase",
+  "Frecuencia"
+)
+
+tabla_cpu
+```
+
+
+```{r }
+tabla_cpu$LimiteInferior <- seq(
+  0,
+  90,
+  by = 10
+)
+
+tabla_cpu$LimiteSuperior <- seq(
+  10,
+  100,
+  by = 10
+)
+
+tabla_cpu$MarcaClase <- (
+  tabla_cpu$LimiteInferior +
+    tabla_cpu$LimiteSuperior
+) / 2
+
+tabla_cpu
+```
+
+
+```{r }
+ggplot(
+  tabla_cpu,
+  aes(
+    x = MarcaClase,
+    y = Frecuencia
+  )
+) +
+  geom_line() +
+  geom_point() +
+  scale_x_continuous(
+    breaks = seq(
+      0,
+      100,
+      by = 10
+    )
+  ) +
+  theme_classic()
+```
+
+---
+
+# Pregunta 4
+
+# Calcular la mediana y la desviacion estandar 
+
+```{r datos}
+latenciaWeb <- datosServidor %>%
+  filter(
+    TipoEntorno == "WebAPI"
+  ) %>%
+  pull(
+    Latencia
+  )
+
+latenciaWeb
+```
+
+Mediana
+
+```{r mediana}
+medianaLatencia <- median(
+  latenciaWeb,
+  na.rm = TRUE
+)
+
+medianaLatencia
+```
+
+desviacion estandar
+
+```{r desviacion estandar}
+desviacionLatencia <- sd(
+  latenciaWeb,
+  na.rm = TRUE
+)
+
+desviacionLatencia
+```
+
+Resultados:
+
+```{r resultado}
+cat(
+  "La desviación estándar de la Latencia para WebAPI es:",
+  desviacionLatencia,
+  "ms"
+)
+
+cat(
+  "La mediana de la Latencia para WebAPI es de:",
+  medianaLatencia,
+  "ms\n"
+)
+```
+
+---
+
+# Pregunta 5
+
+# Calcular el cuartil y el uso de RAM
+
+```{r }
+cuartil1 <- quantile(
+  datosServidor$UsoRAM,
+  probs = 0.25,
+  na.rm = TRUE
+)
+
+cuartil1
+```
+
+```{r }
+decil7 <- quantile(
+  datosServidor$UsoRAM,
+  probs = 0.70,
+  na.rm = TRUE
+)
+
+decil7
+```
+
+```{r }
+cat(
+  
+  "El Decil 7 de UsoRAM es:",
+  decil7,
+  "GB"
+)
+
+cat(
+  "El Cuartil 1 de UsoRAM es:",
+  cuartil1,
+  "GB\n"
+)
+```
+
+---
+
+# Pregunta 6
+
+# Diagrama de Cajas
+
+```{r Diagrama de cajas}
+ggplot(
+  datosServidor,
+  aes(
+    x = EstadoServidor,
+    y = TasaErrores
+  )
+) +
+  geom_boxplot() +
+  labs(
+    title = "Tasa de Errores según Estado del Servidor",
+    x = "Estado del Servidor",
+    y = "Tasa de Errores (%)"
+  ) +
+  theme_minimal()
+```
+
+---
+
+# Pregunta 7
+
+# Variabilidad relativa
+
+```{r }
+aws <- datosServidor %>%
+  filter(
+    ProveedorCloud == "AWS"
+  ) %>%
+  pull(
+    ContenedoresActivos
+  )
+
+aws
+```
+
+```{r }
+azure <- datosServidor %>%
+  filter(
+    ProveedorCloud == "Azure"
+  ) %>%
+  pull(
+    ContenedoresActivos
+  )
+
+azure
+```
+
+
+```{r }
+cvAws <- (
+  sd(
+    aws,
+    na.rm = TRUE
+  ) /
+    mean(
+      aws,
+      na.rm = TRUE
+    )
+) * 100
+
+cvAws
+```
+
+```{r }
+cvAzure <- (
+  sd(
+    azure,
+    na.rm = TRUE
+  ) /
+    mean(
+      azure,
+      na.rm = TRUE
+    )
+) * 100
+
+cvAzure
+```
+
+Se muestran ambos resultados.
+
+```{r pregunta7_resultados}
+cat(
+  "Coeficiente de variación de AWS:",
+  round(cvAws, 2)
+)
+
+cat(
+  "Coeficiente de variación de Azure:",
+  round(cvAzure, 2)
+)
+```
+
+```{r }
+if (cvAws > cvAzure) {
+  
+  cat(
+    "AWS presenta mayor variabilidad relativa en el número de Contenedores Activos."
+  )
+  
+} else if (cvAzure > cvAws) {
+  
+  cat(
+    "Azure presenta mayor variabilidad relativa en el número de Contenedores Activos."
+  )
+  
+} else {
+  
+  cat(
+    "AWS y Azure presentan la misma variabilidad relativa."
+  )
+  
+}
+```
+
+
+

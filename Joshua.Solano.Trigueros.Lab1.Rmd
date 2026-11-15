@@ -1,0 +1,226 @@
+---
+title: "Joshua.Solano.Lab1."
+author: "Joshua Solano Trigueros"
+date: "2026-09-04"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+
+
+# ==========================================
+# CARGAR LOS DATOS
+
+
+library(readxl)
+  datos <- read_excel(file.choose())
+  
+
+head(datos)
+```
+
+# ==========================================
+# PREGUNTA 1
+
+```{r}
+estado <- datos$EstadoServidor
+
+estado_absoluta <- as.vector(
+  table(estado)
+)
+
+estado_porcentaje <- as.vector(
+  round(prop.table(table(estado))*100,2)
+)
+
+tabla_estado <- data.frame(
+  Variable = levels(as.factor(estado)),
+  Frecuencia_Absoluta = estado_absoluta,
+  Porcentaje = estado_porcentaje
+)
+
+tabla_estado
+
+
+if(!require("flextable")){
+  install.packages("flextable")
+}
+
+library(flextable)
+
+tabla <- flextable::align(
+  flextable(tabla_estado),
+  align="center",
+  part="all"
+)
+
+tabla <- set_caption(
+  tabla,
+  "Tabla 1: Frecuencias del servidor y su estado"
+)
+
+tabla <- add_footer_lines(
+  tabla,
+  "Fuente: BaseDatosServidores.xlsx"
+)
+
+tabla <- color(tabla, part="all", color="red")
+tabla <- color(tabla, part="header", color="blue")
+tabla <- color(tabla, part="footer", color="orange")
+
+tabla
+```
+
+
+# ==========================================
+# PREGUNTA 2
+
+```{r}
+tabla_carga <- table(
+  datos$TipoEntorno,
+  datos$NivelCarga
+)
+
+tabla_carga
+
+barplot(
+  tabla_carga,
+  beside=TRUE,
+  main="Nivel de carga dependiendo del estado del entorno",
+  xlab="Categoria del entrno",
+  ylab="Frecuencia"
+)
+
+```
+
+# ==========================================
+# PREGUNTA 3
+
+```{r}
+clases_cpu <- cut(
+  datos$UsoCPU,
+  breaks=seq(
+    floor(min(datos$UsoCPU)/10)*10,
+    ceiling(max(datos$UsoCPU)/10)*10,
+    by=10 ),
+  right=FALSE)
+
+frecuencia_cpu <- table(clases_cpu)
+
+limites_cpu <- attr(clases_cpu, "breaks")
+
+puntos_medios <- (
+  limites_cpu[-1] +
+    limites_cpu[-length(limites_cpu)])/2
+
+plot(
+  puntos_medios,
+  as.vector(frecuencia_cpu),
+  type="o",
+  
+  xlab="porcentaje de CPu segun su uso",
+  
+  ylab="Frecuencia absoluta")
+
+```
+
+# ==========================================
+# PREGUNTA 4
+
+```{r}
+mediana<-median(datos$WedApi)
+
+latencia_webapi <- datos$Latencia[
+  datos$TipoEntorno=="WebAPI"]
+
+mediana_webapi <- median(
+  latencia_webapi,
+  na.rm=TRUE)
+
+mediana_webapi
+
+desviacion_webapi <- sd(
+  latencia_webapi,
+  na.rm=TRUE)
+
+desviacion_webapi
+```
+
+# ==========================================
+# PREGUNTA 5
+
+```{r}
+Q1<-quantile(datos$UsoRAM,probs=25/100,na.rm=TRUE)
+
+Q1
+
+D7 <- quantile(datos$UsoRAM,probs=70/100, na.rm=TRUE
+)
+
+D7
+
+```
+
+# ==========================================
+# PREGUNTA 6
+
+```{r}
+
+boxplot(
+  TasaErrores ~ EstadoServidor,
+  data=datos,
+  main="Tasa de errores segun estado del servidor",
+  xlab="estado del seervidor",
+  ylab="porcentaje de erroes",
+  las=1
+)
+
+```
+
+
+# ==========================================
+# PREGUNTA 7
+
+```{r}
+
+contenedores_aws <- datos$ContenedoresActivos[
+  datos$ProveedorCloud=="AWS"]
+
+contenedores_azure <- datos$ContenedoresActivos[
+  datos$ProveedorCloud=="Azure"
+]
+
+
+CV_aws <- (
+  sd(contenedores_aws, na.rm=TRUE) /
+    mean(contenedores_aws, na.rm=TRUE)
+)*100
+
+CV_aws
+
+
+CV_azure <- (
+  sd(contenedores_azure, na.rm=TRUE) /
+    mean(contenedores_azure, na.rm=TRUE)
+)*100
+
+CV_azure
+
+
+if(CV_aws>CV_azure){
+  
+  print("Los cntenedores activos de aws muestran una mayor cantidad de variabilidad relativa")
+  
+}else{
+  
+  print("Los Contenedores Activos de azure muestran un mayor nivel de variavilidad relativa")
+ 
+  
+}
+```

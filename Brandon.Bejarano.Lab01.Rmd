@@ -1,0 +1,128 @@
+---
+title: "Brandon.Bejarano.Lab1"
+output:
+  html_document: default
+  pdf_document: default
+date: "2026-09-04"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+```{r}
+if(!require("readxl")){
+  install.packages("readxl")
+  library("readxl")
+}
+if(!require("flextable")){
+  install.packages("flextable")
+  library("flextable")
+}
+if(!require("fdth")){
+  install.packages("fdth")
+  library("fdth")
+}
+
+datos <- read_excel("BaseDatosServidores.xlsx")
+
+#CUADRO DE DISTRIBUCION DE FRECUENCIAS
+frec_absoluta <- as.vector(table(datos$EstadoServidor))
+frec_porcentual <- round(prop.table(frec_absoluta) * 100, 2)
+nombre1 <- c("Crítico", "Degradado", "Óptimo")
+tabla1 <- data.frame(Variable = nombre1, frec_absoluta, frec_porcentual)
+colnames(tabla1) <- c("Estado del Servidor", "Frecuencia Absoluta", "Porcentaje")
+tabla1 <- flextable::align(flextable(tabla1), align = "center", part = "all")
+tabla1 <- set_caption(tabla1, "Cuadro 1: Distribución de servidores según Estado del Servidor")
+tabla1 <- add_footer_lines(tabla1, "Fuente: BaseDatosServidores.xlsx, 2025")
+tabla1 <- color(tabla1, part = "all", color = "black")
+tabla1 <- color(tabla1, part = "header", color = "black")
+tabla1 <- color(tabla1, part = "footer", color = "black")
+tabla1
+
+```
+
+#PREGUNTA 2: CUADRO NIVEL DE CARGA SEGUN EL TIPO DE ENTORNO
+```{r}
+tabla_contingencia <- table(datos[c("NivelCarga", "TipoEntorno")])
+barrascomparativas <- barplot(tabla_contingencia,
+                              ylab = "Cantidad de servidores",
+                              xlab = "Tipo de Entorno",
+                              main = "Nivel de Carga según Tipo de Entorno",
+                              beside = T,
+                              col = rainbow(3),
+                              legend.text = c("Bajo", "Medio", "Alto"),
+                              args.legend = list(x = "topright", cex = 0.7))
+```
+#PREGUNTA 3: POLIGONO DE FRECUENCIAS ABSOLUTAS PARA REPRESENTAR LA VARIABLE USO DEL CPU
+```{r}
+dist_p <- fdt(datos$UsoCPU, start = 10, end = 100, h = 10)
+dist_p
+plot(dist_p, type = "fp", las = 1, col = "blue",
+     main = "", xlab = "", ylab = "")
+```
+
+#PREGUNTA 4: CALCULAR MEDIANA Y DESVIACION ESTANDAR PARA LA VARIABLE DE LATENCIA PARA EL TIPO DE ENTORNO WEB API
+```{r}
+latencia_webapi <- datos$Latencia[datos$TipoEntorno == "WebAPI"]
+mediana_lat <- median(latencia_webapi)
+cat("Mediana Latencia WebAPI:", mediana_lat)
+sd_lat <- sd(latencia_webapi)
+cat("Desviación estándar Latencia WebAPI:", sd_lat)
+```
+
+#PREGUNTA 5: CALCULAR EL CUARTIL 1 Y DECIL 7
+```{r}
+Q1_ram <- quantile(datos$UsoRAM, probs = 0.25, na.rm = TRUE)
+cat("Cuartil 1 Uso de RAM:", Q1_ram)
+D7_ram <- quantile(datos$UsoRAM, probs = 0.70, na.rm = TRUE)
+cat("Decil 7 Uso de RAM:", D7_ram)
+```
+
+#PREGUNTA 6: DIAGRAMA DE CAJAS PARA LA VARIABLE Y TASAS DE ERRORES
+```{r}
+boxplot(datos$TasaErrores ~ datos$EstadoServidor,
+        main = "Tasa de Errores según Estado del Servidor",
+        xlab = "Estado del Servidor",
+        ylab = "Tasa de Errores (%)",
+        col = "blue")
+```
+
+
+# PREGUNTA 7: DETERMINAR CUAL DE LAS 2 VARIABLES TIENE MAYOR VARIABILIDAD RELATIVA
+
+```{r}
+
+cont_aws <- datos$ContenedoresActivos[datos$ProveedorCloud == "AWS"]
+cont_azure <- datos$ContenedoresActivos[datos$ProveedorCloud == "Azure"]
+CV1 <- (sd(cont_aws) / mean(cont_aws)) * 100
+CV2 <- (sd(cont_azure) / mean(cont_azure)) * 100
+CV1
+CV2
+if (CV1 > CV2){
+  print("El Número de Contenedores Activos en AWS es más variable")
+} else{
+  print("El Número de Contenedores Activos en Azure es más variable")
+}
+```
+
